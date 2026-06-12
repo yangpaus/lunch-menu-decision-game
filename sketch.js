@@ -1,14 +1,9 @@
-let menu;
-let myFont;
-let itemsData;
-let itemsArray;
-let leftPad, rightPad;
-let aiMaxSpeed = 10;
+let field, menu, leftPaddle, rightPaddle;
+let itemsData, itemsArray;
+let fireworks = [];
 const STATE = { PLAYING: "playing", RESULT: "result" };
 let gameState = STATE.PLAYING;
 let resultMenu = null;
-let winner = null;
-let fireworks = [];
 
 function preload() {
   itemsData = loadJSON("items.json");
@@ -22,110 +17,81 @@ function setup() {
   rectMode(CENTER);
 
   itemsArray = Object.values(itemsData);
-  menu = new Menu(itemsArray);
 
   const margin = width / 12;
-  const pw = width / 120,
-    ph = height / 10;
-  leftPad = { x: margin, y: height / 2, w: pw, h: ph };
-  rightPad = { x: width - margin, y: height / 2, w: pw, h: ph };
+  const pw = width / 120, ph = height / 10;
+
+  field       = new Field();
+  leftPaddle  = new Paddle(margin,         height / 2, pw, ph);
+  rightPaddle = new Paddle(width - margin, height / 2, pw, ph);
+  menu        = new Menu(itemsArray);
 }
 
 function draw() {
-  background(0);
   textSize(width > height ? width * 0.02 : height * 0.02);
-  
-  for (let i = 1; i < height; i++) {
-    let spacing = width / 60;
-    fill(255);
-    rect(width / 2, i * spacing, width / 120);
-  }
-  
+  field.show();
+
   if (gameState === STATE.PLAYING) {
-    updatePlayer();
-    updateAI();
-    drawPaddles();
+    leftPaddle.followMouse();
+    rightPaddle.followBall(menu, height / 80);
+    leftPaddle.show();
+    rightPaddle.show();
+
     menu.update();
-    menu.collidePaddle(leftPad, +1);
-    menu.collidePaddle(rightPad, -1);
+    menu.collidePaddle(leftPaddle,  +1);
+    menu.collidePaddle(rightPaddle, -1);
     menu.show();
 
     const goal = menu.isGoal();
     if (goal) {
       resultMenu = menu.text;
-      winner = goal;
-      gameState = STATE.RESULT;
+      gameState  = STATE.RESULT;
       sndGoal();
       launchFireworks();
     }
-  } else if (gameState === STATE.RESULT) {
-    drawResult();
+  } else {
+    updateFireworks();
+    field.showResult(resultMenu);
   }
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-}
 
-function drawPaddles() {
-  push();
-  noStroke();
-  fill(255);
-  rect(leftPad.x, leftPad.y, leftPad.w, leftPad.h, 3);
-  rect(rightPad.x, rightPad.y, rightPad.w, rightPad.h, 3);
-  pop();
-}
+  const margin = width / 12;
+  const pw = width / 120, ph = height / 10;
 
-function updatePlayer() {
-  const half = leftPad.h / 2;
-  leftPad.y = constrain(mouseY, half, height - half);
-}
-
-function updateAI() {
-  const half = rightPad.h / 2;
-  const target = menu.vel.x > 0 ? menu.pos.y : height / 2;
-  const dy = target - rightPad.y;
-  rightPad.y += constrain(dy, -aiMaxSpeed, aiMaxSpeed);
-  rightPad.y = constrain(rightPad.y, half, height - half);
-}
-
-function drawResult() {
-  updateFireworks();
-  push();
-  fill(0)
-  rect(width / 2, height / 2, width / 4, height / 4);
-  fill(0, 0, 100);
-  textSize(16);
-  text("오늘 점심은", width / 2, height / 2 - 70);
-  textSize(32);
-  text(resultMenu, width / 2, height / 2);
-  pop();
+  leftPaddle.x  = margin;
+  rightPaddle.x = width - margin;
+  leftPaddle.w  = rightPaddle.w = pw;
+  leftPaddle.h  = rightPaddle.h = ph;
 }
 
 function mousePressed() {
   if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
-  if (actx.state === 'suspended') actx.resume();
+  if (actx.state === "suspended") actx.resume();
   if (gameState === STATE.RESULT) resetGame();
 }
 
 function resetGame() {
-  menu = new Menu(itemsArray);
-  leftPad.y = rightPad.y = height / 2;
-  resultMenu = null;
-  winner = null;
-  fireworks = [];
-  gameState = STATE.PLAYING;
+  menu        = new Menu(itemsArray);
+  leftPaddle.y  = height / 2;
+  rightPaddle.y = height / 2;
+  resultMenu  = null;
+  fireworks   = [];
+  gameState   = STATE.PLAYING;
 }
 
 function launchFireworks() {
   for (let i = 0; i < 5; i++) {
-    const x = random(width * 0.2, width * 0.8);
-    const y = random(height * 0.2, height * 0.6);
-    fireworks.push(new Firework(x, y));
+    fireworks.push(new Firework(
+      random(width * 0.2, width * 0.8),
+      random(height * 0.2, height * 0.6)
+    ));
   }
 }
 
 function updateFireworks() {
-  for (const fw of fireworks) { fw.update(); fw.show() }
-  fireworks = fireworks.filter(fw => !fw.done );
+  for (const fw of fireworks) { fw.update(); fw.show(); }
+  fireworks = fireworks.filter(fw => !fw.done);
 }

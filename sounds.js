@@ -17,7 +17,7 @@ function blip(freq, dur = 0.08) {
   osc.stop(t + dur);
 }
 
-function crowdCheer(dur = 1.6) {
+function crowdCheer(dur = 2.5) {
   if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
   const t = actx.currentTime;
 
@@ -31,20 +31,20 @@ function crowdCheer(dur = 1.6) {
   // 2) 밴드패스
   const bp = actx.createBiquadFilter();
   bp.type = 'bandpass';
-  bp.frequency.value = 700;
-  bp.Q.value = 0.7;
+  bp.frequency.value = 1100;
+  bp.Q.value = 0.45;
 
   // 3) swell 엔벨로프
   const gain = actx.createGain();
   gain.gain.setValueAtTime(0.0001, t);
-  gain.gain.exponentialRampToValueAtTime(0.35, t + dur * 0.35);
+  gain.gain.exponentialRampToValueAtTime(0.5, t + dur * 0.2);
   gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
 
   // 4) LFO — 게인을 흔들어 군중 웅성임 (← crowdCheer 안으로 들어옴)
   const lfo = actx.createOscillator();
   const lfoGain = actx.createGain();
-  lfo.frequency.value = 18;
-  lfoGain.gain.value = 0.08;
+  lfo.frequency.value = 7;
+  lfoGain.gain.value = 0.15;
   lfo.connect(lfoGain);
   lfoGain.connect(gain.gain);     // swell 게인 위에 떨림을 더함
   lfo.start(t);

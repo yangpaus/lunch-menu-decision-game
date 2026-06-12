@@ -25,12 +25,13 @@ class Menu {
     this.pos.add(this.vel);
     let hit = false;
 
-    if (this.pos.y > height - ry) {
-      this.pos.y = height - ry;
+    const lineH = height / 80;
+    if (this.pos.y > height - lineH - ry) {
+      this.pos.y = height - lineH - ry;
       this.vel.y = -Math.abs(this.vel.y);
       hit = true;
-    } else if (this.pos.y < ry) {
-      this.pos.y = ry;
+    } else if (this.pos.y < lineH + ry) {
+      this.pos.y = lineH + ry;
       this.vel.y = Math.abs(this.vel.y);
       hit = true;
     }
