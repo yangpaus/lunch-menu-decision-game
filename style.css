@@ -7,3 +7,20 @@ html, body {
 canvas {
   display: block;
 }
+
+#connectBtn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+#connectBtn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}

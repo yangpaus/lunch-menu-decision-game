@@ -4,6 +4,7 @@ let fireworks = [];
 const STATE = { PLAYING: "playing", RESULT: "result" };
 let gameState = STATE.PLAYING;
 let resultMenu = null;
+let prevEncoderCount = 0;
 
 function preload() {
   itemsData = loadJSON("items.json");
@@ -31,8 +32,18 @@ function draw() {
   textSize(width > height ? width * 0.02 : height * 0.02);
   field.show();
 
+  // 엔코더 버튼 처리
+  if (encoderPressed) {
+    encoderPressed = false;
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    if (gameState === STATE.RESULT) resetGame();
+  }
+
   if (gameState === STATE.PLAYING) {
-    leftPaddle.followMouse();
+    const delta = encoderCount - prevEncoderCount;
+    prevEncoderCount = encoderCount;
+    leftPaddle.followEncoder(delta);
     rightPaddle.followBall(menu, height / 80);
     leftPaddle.show();
     rightPaddle.show();
